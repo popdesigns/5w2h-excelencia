@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>5W2H — Descripción del Fenómeno</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    min-height: 100vh;
+    background: linear-gradient(145deg, #0a0e1a 0%, #111827 40%, #0f172a 100%);
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    color: #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  .bg-grid {
+    position: fixed; inset: 0; opacity: 0.03; pointer-events: none;
+    background-image: linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  .container { width: 100%; max-width: 960px; position: relative; z-index: 1; }
+
+  /* Header */
+  .header { text-align: center; margin-bottom: 24px; }
+  .header-badge {
+    display: inline-flex; align-items: center; gap: 12px;
+    background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(147,51,234,0.15));
+    border: 1px solid rgba(99,102,241,0.25);
+    border-radius: 12px; padding: 12px 28px; margin-bottom: 8px;
+  }
+  .header-title {
+    font-size: 32px; font-weight: 800; letter-spacing: -0.5px;
+    background: linear-gradient(135deg, #60a5fa, #a78bfa, #f472b6);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .header-sub {
+    font-size: 14px; color: #94a3b8; margin: 6px 0 0;
+    letter-spacing: 2px; text-transform: uppercase; font-weight: 500;
+  }
+
+  /* Progress */
+  .progress-wrap { margin-bottom: 18px; }
+  .progress-header { display: flex; justify-content: space-between; margin-bottom: 6px; }
+  .progress-label { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
+  .progress-track { height: 3px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden; }
+  .progress-fill {
+    height: 100%; border-radius: 4px;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
+    transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  /* Fields grid */
+  .fields-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 10px; margin-bottom: 18px;
+  }
+
+  .field-card {
+    background: rgba(15,23,42,0.5);
+    border: 1px solid rgba(255,255,255,0.04);
+    border-radius: 10px; padding: 12px 16px;
+    transition: all 0.3s ease; position: relative; overflow: hidden;
+  }
+  .field-card.active { border-color: var(--accent); }
+  .field-card.active .glow-line { opacity: 1; }
+  .field-card.filled { border-color: rgba(255,255,255,0.08); }
+  .field-card.full-width { grid-column: 1 / -1; }
+
+  .glow-line {
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0; transition: opacity 0.3s;
+  }
+
+  .field-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .field-tag {
+    font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px;
+    letter-spacing: 0.5px; text-transform: uppercase; white-space: nowrap;
+  }
+  .field-question { font-size: 12px; color: #64748b; font-weight: 500; }
+  .field-check { font-size: 13px; margin-left: auto; }
+
+  .field-input {
+    width: 100%; background: rgba(0,0,0,0.25);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 6px; padding: 8px 12px; font-size: 14px;
+    color: #f1f5f9; outline: none; font-family: inherit;
+    transition: border-color 0.2s;
+  }
+  .field-input:focus { border-color: rgba(255,255,255,0.15); }
+  .field-input::placeholder { color: #334155; }
+
+  .field-card.w-field { --accent: #3b82f6; --tag-bg: rgba(59,130,246,0.15); }
+  .field-card.h-field { --accent: #a855f7; --tag-bg: rgba(168,85,247,0.15); }
+  .field-card.w-field .field-tag { background: rgba(59,130,246,0.15); color: #3b82f6; }
+  .field-card.h-field .field-tag { background: rgba(168,85,247,0.15); color: #a855f7; }
+  .field-card.active.w-field { background: linear-gradient(135deg, rgba(59,130,246,0.06), rgba(15,23,42,0.8)); }
+  .field-card.active.h-field { background: linear-gradient(135deg, rgba(168,85,247,0.06), rgba(15,23,42,0.8)); }
+
+  /* Buttons */
+  .actions { display: flex; gap: 10px; margin-bottom: 18px; justify-content: center; }
+  .btn-generate {
+    padding: 12px 36px; font-size: 14px; font-weight: 700;
+    letter-spacing: 0.5px; border: none; border-radius: 8px;
+    cursor: not-allowed; background: rgba(255,255,255,0.05);
+    color: #475569; transition: all 0.3s; text-transform: uppercase;
+    font-family: inherit;
+  }
+  .btn-generate.ready {
+    cursor: pointer; color: #fff;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    box-shadow: 0 4px 20px rgba(99,102,241,0.25);
+  }
+  .btn-generate.ready:hover { filter: brightness(1.1); transform: translateY(-1px); }
+  .btn-reset {
+    padding: 12px 24px; font-size: 13px; font-weight: 600;
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;
+    cursor: pointer; background: rgba(255,255,255,0.03);
+    color: #94a3b8; transition: all 0.3s; font-family: inherit;
+  }
+  .btn-reset:hover { border-color: rgba(255,255,255,0.2); color: #e2e8f0; }
+
+  /* Result */
+  .result-box {
+    background: rgba(15,23,42,0.4);
+    border: 1px solid rgba(255,255,255,0.04);
+    border-radius: 12px; padding: 20px 24px;
+    min-height: 80px; transition: all 0.5s; position: relative; overflow: hidden;
+  }
+  .result-box.generated {
+    background: linear-gradient(135deg, rgba(16,185,129,0.08), rgba(15,23,42,0.9));
+    border-color: rgba(16,185,129,0.3);
+  }
+  .result-glow {
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, #10b981, transparent);
+    opacity: 0; transition: opacity 0.5s;
+  }
+  .result-box.generated .result-glow { opacity: 1; }
+
+  .result-tag {
+    display: inline-block; font-size: 10px; font-weight: 700;
+    padding: 3px 10px; border-radius: 4px;
+    letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px;
+    background: rgba(255,255,255,0.05); color: #475569;
+  }
+  .result-box.generated .result-tag { background: rgba(16,185,129,0.15); color: #10b981; }
+
+  .result-text { font-size: 15px; line-height: 1.7; color: #e2e8f0; }
+  .result-placeholder { font-size: 13px; color: #475569; font-style: italic; }
+
+  .spinner { display: inline-flex; align-items: center; gap: 10px; color: #64748b; }
+  .spinner-ring {
+    width: 18px; height: 18px; border: 2px solid rgba(139,92,246,0.3);
+    border-top: 2px solid #8b5cf6; border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .footer {
+    margin-top: 18px; font-size: 11px; color: #334155;
+    text-align: center; letter-spacing: 1px; text-transform: uppercase;
+  }
+
+  .fullscreen-btn {
+    position: fixed; top: 12px; right: 12px; z-index: 100;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px; padding: 6px 10px; color: #64748b; cursor: pointer;
+    font-size: 11px; font-family: inherit; transition: all 0.2s;
+  }
+  .fullscreen-btn:hover { background: rgba(255,255,255,0.1); color: #e2e8f0; }
+
+  /* Error toast */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3);
+    color: #fca5a5; padding: 10px 20px; border-radius: 8px;
+    font-size: 13px; z-index: 200; display: none;
+    animation: fadeIn 0.3s ease;
+  }
+  .toast.show { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateX(-50%) translateY(10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+
+<button class="fullscreen-btn" onclick="toggleFullscreen()">⛶ Pantalla completa</button>
+
+<div class="container">
+  <div class="header">
+    <div class="header-badge">
+      <span style="font-size:32px">🧠</span>
+      <span class="header-title">5W 2H</span>
+    </div>
+    <p class="header-sub">Compilando la información para resumir el fenómeno</p>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-header">
+      <span class="progress-label">Progreso</span>
+      <span class="progress-label" id="progressCount">0 / 7</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progressBar" style="width:0%"></div>
+    </div>
+  </div>
+
+  <div class="fields-grid" id="fieldsGrid"></div>
+
+  <div class="actions">
+    <button class="btn-generate" id="btnGenerate" onclick="generateDescription()">▶ Generar Fenómeno</button>
+    <button class="btn-reset" onclick="resetAll()">↻ Nuevo análisis</button>
+  </div>
+
+  <div class="result-box" id="resultBox">
+    <div class="result-glow"></div>
+    <div class="result-tag" id="resultTag">📋 Descripción del Fenómeno</div>
+    <div id="resultContent">
+      <p class="result-placeholder">Completa los 7 campos y presiona "Generar Fenómeno" o Enter en el último campo para obtener la descripción integrada.</p>
+    </div>
+  </div>
+
+  <div class="footer">Excelencia Operacional · Análisis de Causa Raíz · 5W2H</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const FIELDS = [
+  { key: "what", label: "1. WHAT", question: "¿Qué sucede?", placeholder: "Problema observable...", type: "w" },
+  { key: "when", label: "2. WHEN", question: "¿Cuándo ocurre?", placeholder: "Momento del evento...", type: "w" },
+  { key: "where", label: "3. WHERE", question: "¿Dónde ocurre?", placeholder: "Ubicación...", type: "w" },
+  { key: "who", label: "4. WHO", question: "¿Quién está involucrado?", placeholder: "Dependencia de personas...", type: "w" },
+  { key: "which", label: "5. WHICH", question: "¿Qué patrón tiene?", placeholder: "Frecuencia o tendencia...", type: "w" },
+  { key: "how", label: "1. HOW", question: "¿Cómo difiere del óptimo?", placeholder: "Desviación...", type: "h" },
+  { key: "howmuch", label: "2. HOW MUCH", question: "¿Cuánto?", placeholder: "Impacto cuantificado: % / cantidad / frecuencia...", type: "h" },
+];
+
+const values = {};
+const inputs = {};
+
+// Build fields
+const grid = document.getElementById("fieldsGrid");
+FIELDS.forEach((f, idx) => {
+  values[f.key] = "";
+  const card = document.createElement("div");
+  card.className = `field-card ${f.type}-field`;
+  card.id = `card-${f.key}`;
+  if (f.key === "howmuch") card.classList.add("full-width");
+
+  card.innerHTML = `
+    <div class="glow-line"></div>
+    <div class="field-header">
+      <span class="field-tag">${f.label}</span>
+      <span class="field-question">${f.question}</span>
+      <span class="field-check" id="check-${f.key}" style="display:none">✓</span>
+    </div>
+    <input class="field-input" id="input-${f.key}" type="text" placeholder="${f.placeholder}">
+  `;
+  grid.appendChild(card);
+
+  const input = card.querySelector("input");
+  inputs[f.key] = input;
+
+  input.addEventListener("input", () => { values[f.key] = input.value; updateUI(); });
+  input.addEventListener("focus", () => card.classList.add("active"));
+  input.addEventListener("blur", () => card.classList.remove("active"));
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (idx < FIELDS.length - 1) {
+        inputs[FIELDS[idx + 1].key].focus();
+      } else if (allFilled()) {
+        generateDescription();
+      }
+    }
+  });
+});
+
+function allFilled() {
+  return FIELDS.every(f => values[f.key].trim() !== "");
+}
+
+function updateUI() {
+  const filled = FIELDS.filter(f => values[f.key].trim() !== "").length;
+  document.getElementById("progressCount").textContent = `${filled} / ${FIELDS.length}`;
+  document.getElementById("progressBar").style.width = `${(filled / FIELDS.length) * 100}%`;
+
+  FIELDS.forEach(f => {
+    const isFilled = values[f.key].trim() !== "";
+    document.getElementById(`card-${f.key}`).classList.toggle("filled", isFilled);
+    document.getElementById(`check-${f.key}`).style.display = isFilled ? "inline" : "none";
+  });
+
+  document.getElementById("btnGenerate").classList.toggle("ready", allFilled());
+}
+
+function showToast(msg) {
+  const toast = document.getElementById("toast");
+  toast.textContent = msg;
+  toast.classList.add("show");
+  setTimeout(() => toast.classList.remove("show"), 4000);
+}
+
+async function generateDescription() {
+  if (!allFilled()) return;
+
+  const btn = document.getElementById("btnGenerate");
+  const resultBox = document.getElementById("resultBox");
+  const resultContent = document.getElementById("resultContent");
+
+  btn.classList.remove("ready");
+  btn.textContent = "⏳ Generando...";
+  resultBox.classList.remove("generated");
+  resultContent.innerHTML = `<div class="spinner"><div class="spinner-ring"></div><span style="font-size:14px;font-style:italic">Analizando datos e integrando el fenómeno...</span></div>`;
+
+  const userMessage = `A partir de la siguiente información:
+• WHAT (¿Qué sucede?): ${values.what}
+• WHEN (¿Cuándo ocurre?): ${values.when}
+• WHERE (¿Dónde ocurre?): ${values.where}
+• WHO (¿Quién está involucrado?): ${values.who}
+• WHICH (¿Qué patrón tiene?): ${values.which}
+• HOW (¿Cómo difiere del estado óptimo?): ${values.how}
+• HOW MANY / HOW MUCH (¿Cuánto?): ${values.howmuch}`;
+
+  try {
+    const response = await fetch("/.netlify/functions/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userMessage }),
+    });
+
+    const data = await response.json();
+
+    if (data.error) throw new Error(data.error);
+
+    resultContent.innerHTML = `<p class="result-text">${data.text}</p>`;
+    resultBox.classList.add("generated");
+  } catch (err) {
+    resultContent.innerHTML = `<p class="result-placeholder">Completa los 7 campos y presiona "Generar Fenómeno" o Enter en el último campo para obtener la descripción integrada.</p>`;
+    showToast("Error: " + err.message);
+  } finally {
+    btn.textContent = "▶ Generar Fenómeno";
+    updateUI();
+  }
+}
+
+function resetAll() {
+  FIELDS.forEach(f => { values[f.key] = ""; inputs[f.key].value = ""; });
+  document.getElementById("resultBox").classList.remove("generated");
+  document.getElementById("resultContent").innerHTML = `<p class="result-placeholder">Completa los 7 campos y presiona "Generar Fenómeno" o Enter en el último campo para obtener la descripción integrada.</p>`;
+  updateUI();
+  inputs[FIELDS[0].key].focus();
+}
+
+function toggleFullscreen() {
+  if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+  else document.exitFullscreen();
+}
+
+updateUI();
+</script>
+</body>
+</html>
