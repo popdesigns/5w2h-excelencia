@@ -33,7 +33,7 @@ Condiciones:
     const options = {
       hostname: "generativelanguage.googleapis.com",
       port: 443,
-        path: `/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      path: `/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
       method: "POST",
       headers: {
         "Content-Type": "application/json",
