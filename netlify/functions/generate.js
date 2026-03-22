@@ -2,7 +2,7 @@ const https = require("https");
 
 function callGemini(apiKey, userMessage) {
   return new Promise((resolve, reject) => {
-    const systemPrompt = `Actúa como experto en análisis de causa raíz (RCA) y redacta la descripción del fenómeno utilizando la metodología 5W2H.
+    const systemPrompt = `Eres un experto en análisis de causa raíz (RCA). Tu tarea es redactar la descripción del fenómeno utilizando la metodología 5W2H.
 
 Construye un solo párrafo claro, objetivo y técnico que describa el fenómeno.
 
@@ -12,16 +12,16 @@ Condiciones:
 - Usar datos y hechos medibles
 - Integrar toda la información en una sola frase coherente
 - Enfocarse únicamente en el fenómeno observado
-- Responde ÚNICAMENTE con el párrafo, sin títulos, sin explicaciones adicionales, sin comillas.`;
+- Responde ÚNICAMENTE con el párrafo, sin títulos, sin explicaciones adicionales, sin comillas.
+
+`;
+
+    const fullMessage = systemPrompt + userMessage;
 
     const body = JSON.stringify({
-      system_instruction: {
-        parts: [{ text: systemPrompt }]
-      },
       contents: [
         {
-          role: "user",
-          parts: [{ text: userMessage }]
+          parts: [{ text: fullMessage }]
         }
       ],
       generationConfig: {
@@ -33,7 +33,7 @@ Condiciones:
     const options = {
       hostname: "generativelanguage.googleapis.com",
       port: 443,
-      path: `/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      path: `/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`,
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -48,7 +48,7 @@ Condiciones:
         try {
           resolve(JSON.parse(data));
         } catch (e) {
-          reject(new Error("Failed to parse API response: " + data.substring(0, 200)));
+          reject(new Error("Failed to parse response: " + data.substring(0, 200)));
         }
       });
     });
@@ -101,7 +101,6 @@ exports.handler = async (event) => {
       };
     }
 
-    // Extract text from Gemini response
     const text = data.candidates?.[0]?.content?.parts?.map((p) => p.text || "").join("") || "";
 
     if (!text) {
