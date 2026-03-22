@@ -1,8 +1,8 @@
 const https = require("https");
 
-function callGemini(apiKey, userMessage) {
+function callAnthropic(apiKey, userMessage) {
   return new Promise((resolve, reject) => {
-    const systemPrompt = `Eres un experto en análisis de causa raíz (RCA). Tu tarea es redactar la descripción del fenómeno utilizando la metodología 5W2H.
+    const systemPrompt = `Actúa como experto en análisis de causa raíz (RCA) y redacta la descripción del fenómeno utilizando la metodología 5W2H.
 
 Construye un solo párrafo claro, objetivo y técnico que describa el fenómeno.
 
@@ -12,31 +12,24 @@ Condiciones:
 - Usar datos y hechos medibles
 - Integrar toda la información en una sola frase coherente
 - Enfocarse únicamente en el fenómeno observado
-- Responde ÚNICAMENTE con el párrafo, sin títulos, sin explicaciones adicionales, sin comillas.
-
-`;
-
-    const fullMessage = systemPrompt + userMessage;
+- Responde ÚNICAMENTE con el párrafo, sin títulos, sin explicaciones adicionales, sin comillas.`;
 
     const body = JSON.stringify({
-      contents: [
-        {
-          parts: [{ text: fullMessage }]
-        }
-      ],
-      generationConfig: {
-        maxOutputTokens: 1000,
-        temperature: 0.7
-      }
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 1000,
+      system: systemPrompt,
+      messages: [{ role: "user", content: userMessage }],
     });
 
     const options = {
-      hostname: "generativelanguage.googleapis.com",
+      hostname: "api.anthropic.com",
       port: 443,
-      path: `/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`,
+      path: "/v1/messages",
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
         "Content-Length": Buffer.byteLength(body),
       },
     };
@@ -48,7 +41,7 @@ Condiciones:
         try {
           resolve(JSON.parse(data));
         } catch (e) {
-          reject(new Error("Failed to parse response: " + data.substring(0, 200)));
+          reject(new Error("Failed to parse API response: " + data.substring(0, 200)));
         }
       });
     });
@@ -74,11 +67,11 @@ exports.handler = async (event) => {
     return { statusCode: 405, headers, body: JSON.stringify({ error: "Method not allowed" }) };
   }
 
-  const API_KEY = process.env.GEMINI_API_KEY;
+  const API_KEY = process.env.ANTHROPIC_API_KEY;
   if (!API_KEY) {
     return {
       statusCode: 500, headers,
-      body: JSON.stringify({ error: "API key not configured. Add GEMINI_API_KEY in Netlify environment variables." }),
+      body: JSON.stringify({ error: "API key not configured. Add ANTHROPIC_API_KEY in Netlify environment variables." }),
     };
   }
 
@@ -92,16 +85,16 @@ exports.handler = async (event) => {
       };
     }
 
-    const data = await callGemini(API_KEY, userMessage);
+    const data = await callAnthropic(API_KEY, userMessage);
 
     if (data.error) {
       return {
         statusCode: 400, headers,
-        body: JSON.stringify({ error: data.error.message || "Gemini API error" }),
+        body: JSON.stringify({ error: data.error.message || "Anthropic API error" }),
       };
     }
 
-    const text = data.candidates?.[0]?.content?.parts?.map((p) => p.text || "").join("") || "";
+    const text = data.content?.map((b) => b.text || "").join("") || "";
 
     if (!text) {
       return {
